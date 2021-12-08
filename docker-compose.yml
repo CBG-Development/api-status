@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  cbgapi:
+    container_name: cbg-api
+    build: .
+    volumes:
+      - .:/usr/src/cbg-api/
+      - /usr/src/cbg-api/node_modules
+    command: npm run start
+    ports:
+      - "3040:3030"
+    environment:
+      NODE_ENV: production
+    restart: always
