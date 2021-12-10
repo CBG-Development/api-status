@@ -77,6 +77,9 @@ app.get('/api/v1/images/playerUnknown', (req, res) => {
 const route_user = require('./routes/player');
 app.use('/api/v1/player', route_user);
 
+const route_tournament = require('./routes/tournament');
+app.use('/api/v1/tournament', route_tournament);
+
 app.use('/', (req, res) => {
     res.status(400).send(
         {
