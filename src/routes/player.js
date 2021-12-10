@@ -196,6 +196,8 @@ router
 
                         const result = await response.json();
 
+                        result.server = server;
+
                         decoded.connections = {
                             leagueoflegends: result
                         };
@@ -254,6 +256,77 @@ router
                         }
                     )
                     
+                } catch(error) {
+                    res.status(500).send({
+                        success: false,
+                        message: "Internal Server Error",
+                        errorCode: 500
+                    })
+                }
+            } catch(error) {
+                res.status(401).send({
+                    success: false,
+                    message: "Unvalid Access token",
+                    errorCode: 401
+                })
+            }
+        } else {
+            res.status(400).send({
+                success: false,
+                message: "Bad Request",
+                errorCode: 400
+            })
+        }
+    })
+
+router
+    .route('/update/lol')
+    .post(async (req, res) => {
+        if (req.body.token) {
+            try {
+                const decoded = jwt.verify(req.body.token, global.JWTSecret)
+
+                try {
+                    const apiurl = `https://${decoded?.connections?.leagueoflegends?.server.toLowerCase()}.api.riotgames.com/lol/summoner/v4/summoners/${decoded?.connections?.leagueoflegends?.id}`;
+                    await fetch(apiurl, 
+                        {
+                            method: 'GET',
+                            headers: {
+                                'Accept-Charset': 'application/x-www-forum-urlencoded; charset=UTF=8',
+                                'X-Riot-Token': global.lolapikey
+                            }
+                        }
+                    ).then(async response => {
+                        if (!response.ok) {
+                            let data = {
+                                success: false,
+                                errorCode: response.status
+                            };
+                            if (response.status === 404) data.message = "Summoner Name not found";
+                            if (response.status === 400) data.message = "Bad Request";
+
+                            res.status(response.status).send(data);
+                            return;
+                        }
+
+                        const result = await response.json();
+
+                        result.server = decoded?.connections?.leagueoflegends?.server;
+
+                        decoded.connections.leagueoflegends = result;
+
+                        global.database.ref().child('connections').push().key;
+                        let update = {};
+                        update[`/players/${decoded.uid}/connections/leagueoflegends`] = result;
+                        global.database.ref().update(update);
+
+                        res.status(200).send(
+                            {
+                                success: true,
+                                token: jwt.sign(decoded, global.JWTSecret)
+                            }
+                        )
+                    })
                 } catch(error) {
                     res.status(500).send({
                         success: false,
