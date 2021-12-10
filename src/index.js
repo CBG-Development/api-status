@@ -33,6 +33,13 @@ global.userUID = new UniqueID(
         machineID: 0001,
     }
 );
+global.teamUID = new UniqueID(
+    {
+        returnNumber: false,
+        customEpoch: 1609455600,
+        machineID: 1201,
+    }
+);
 
 /**
  * Secrets
@@ -63,7 +70,7 @@ app.get('/api/v1/status', (req, res) => {
 const bodyParser = require('body-parser');
 
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/api/v1/images/logo', (req, res) => {
@@ -79,6 +86,9 @@ app.use('/api/v1/player', route_user);
 
 const route_tournament = require('./routes/tournament');
 app.use('/api/v1/tournament', route_tournament);
+
+const route_teams= require('./routes/teams/teams');
+app.use('/api/v1/teams', route_teams);
 
 app.use('/', (req, res) => {
     res.status(400).send(
